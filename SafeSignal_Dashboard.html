@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SafeSignal – Emergency Communication System</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-dim: #94a3b8;
+      --safe-green: #22c55e;
+      --help-yellow: #eab308;
+      --med-red: #ef4444;
+      --accent: #3b82f6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 24px;
+      line-height: 1.5;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .badge {
+      background: #1e3a8a;
+      color: #93c5fd;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .serial-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--card);
+      padding: 12px 18px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+    .btn-serial {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-serial:hover { background: #2563eb; }
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #64748b;
+    }
+    .status-dot.connected { background: var(--safe-green); box-shadow: 0 0 8px var(--safe-green); }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .card h2 {
+      font-size: 1.15rem;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    /* Transmitter simulation */
+    .buttons-container {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .btn-emergency {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 700;
+      transition: transform 0.1s, filter 0.2s;
+    }
+    .btn-emergency:active {
+      transform: scale(0.98);
+    }
+    .btn-safe { background: #166534; color: #dcfce7; border: 2px solid #22c55e; }
+    .btn-safe:hover { filter: brightness(1.2); }
+    .btn-help { background: #854d0e; color: #fef9c3; border: 2px solid #eab308; }
+    .btn-help:hover { filter: brightness(1.2); }
+    .btn-medical { background: #991b1b; color: #fee2e2; border: 2px solid #ef4444; }
+    .btn-medical:hover { filter: brightness(1.2); }
+    
+    /* Receiver simulation */
+    .leds-container {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 24px 0;
+      background: #0f172a;
+      border-radius: 10px;
+      border: 1px solid #1e293b;
+      margin-bottom: 20px;
+    }
+    .led-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .led {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #334155;
+      border: 2px solid #475569;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .led.green.on {
+      background: #22c55e;
+      border-color: #86efac;
+      box-shadow: 0 0 25px #22c55e, 0 0 50px rgba(34, 197, 94, 0.5);
+    }
+    .led.yellow.on {
+      background: #eab308;
+      border-color: #fde047;
+      box-shadow: 0 0 25px #eab308, 0 0 50px rgba(234, 179, 8, 0.5);
+    }
+    .led.red.on {
+      background: #ef4444;
+      border-color: #fca5a5;
+      box-shadow: 0 0 25px #ef4444, 0 0 50px rgba(239, 68, 68, 0.5);
+    }
+    
+    .buzzer-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 18px;
+      background: #0f172a;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .buzzer-indicator {
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: #334155;
+      color: #94a3b8;
+    }
+    .buzzer-indicator.sounding {
+      background: #ef4444;
+      color: white;
+      animation: pulse-buzz 0.4s infinite alternate;
+    }
+    @keyframes pulse-buzz {
+      from { opacity: 0.7; transform: scale(0.98); }
+      to { opacity: 1; transform: scale(1.05); }
+    }
+    
+    /* Live Log */
+    .log-box {
+      background: #0b0f19;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      font-family: monospace;
+      font-size: 0.85rem;
+      height: 180px;
+      overflow-y: auto;
+      color: #38bdf8;
+    }
+    .log-line { margin-bottom: 4px; }
+    .log-line.safe { color: #4ade80; }
+    .log-line.help { color: #facc15; }
+    .log-line.medical { color: #f87171; font-weight: bold; }
+    
+    .queue-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 0.9rem;
+    }
+    .queue-table th, .queue-table td {
+      padding: 8px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .queue-table th { color: var(--text-dim); }
+    .btn-silence {
+      background: #475569;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    .btn-silence:hover { background: #64748b; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div>
+      <h1>🚨 SafeSignal Dashboard</h1>
+      <p style="color: var(--text-dim); font-size: 0.9rem;">Wireless Emergency Communication System (ESP-NOW & WebSerial)</p>
+    </div>
+    <span class="badge">Hardware + Web Gateway Ready</span>
+  </header>
+
+  <!-- WebSerial Connection Bar -->
+  <div class="serial-bar">
+    <button class="btn-serial" id="btnConnectSerial">
+      🔌 Connect ESP32 via USB
+    </button>
+    <div class="status-dot" id="serialDot"></div>
+    <span id="serialStatus" style="font-size: 0.9rem; color: var(--text-dim);">
+      Not connected (Click button to auto-link your physical ESP32 Receiver!)
+    </span>
+    <div style="margin-left: auto; display: flex; gap: 8px;">
+      <button class="btn-silence" id="btnTestSound">🔊 Test Sound</button>
+      <button class="btn-silence" id="btnReset">Reset All</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- Transmitter Section -->
+    <div class="card">
+      <h2>
+        <span>📡 Transmitter (ESP32 - Device 1)</span>
+        <span style="font-size: 0.8rem; color: var(--text-dim); font-weight: normal;">Simulate or monitor GPIO 25, 26, 27</span>
+      </h2>
+      <div class="buttons-container">
+        <button class="btn-emergency btn-safe" onclick="triggerAlert('SAFE', 1)">
+          <span>🟢 SAFE</span>
+          <span style="font-size: 0.8rem; opacity: 0.8;">[GPIO 25]</span>
+        </button>
+
+        <button class="btn-emergency btn-help" onclick="triggerAlert('NEED HELP', 2)">
+          <span>🟡 NEED HELP</span>
+          <span style="font-size: 0.8rem; opacity: 0.8;">[GPIO 26]</span>
+        </button>
+
+        <button class="btn-emergency btn-medical" onclick="triggerAlert('MEDICAL EMERGENCY', 3)">
+          <span>🔴 MEDICAL EMERGENCY</span>
+          <span style="font-size: 0.8rem; opacity: 0.8;">[GPIO 27]</span>
+        </button>
+      </div>
+      <p style="margin-top: 14px; font-size: 0.85rem; color: var(--text-dim);">
+        💡 Clicking these buttons tests the software receiver instantly. When your physical ESP32 sends a signal, it appears here automatically!
+      </p>
+    </div>
+
+    <!-- Receiver Section -->
+    <div class="card">
+      <h2>
+        <span>📻 Receiver (ESP32 - Device 2)</span>
+        <span id="latestBadge" class="badge" style="background: #334155; color: #cbd5e1;">STANDBY</span>
+      </h2>
+
+      <!-- Virtual LEDs -->
+      <div class="leds-container">
+        <div class="led-wrapper">
+          <div class="led green" id="ledGreen"></div>
+          <span>Green LED (GPIO 25)<br>SAFE</span>
+        </div>
+        <div class="led-wrapper">
+          <div class="led yellow" id="ledYellow"></div>
+          <span>Yellow LED (GPIO 26)<br>NEED HELP</span>
+        </div>
+        <div class="led-wrapper">
+          <div class="led red" id="ledRed"></div>
+          <span>Red LED (GPIO 27)<br>MEDICAL</span>
+        </div>
+      </div>
+
+      <!-- Virtual Buzzer -->
+      <div class="buzzer-box">
+        <div>
+          <strong>Active Buzzer Module</strong>
+          <div style="font-size: 0.8rem; color: var(--text-dim);">GPIO 33 (3.3V / 2.8kHz Alarm)</div>
+        </div>
+        <div class="buzzer-indicator" id="buzzerBadge">SILENT</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Priority Queue & Event Log -->
+  <div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+      <h2>📋 Emergency Message Stream & Triage (Phase 5 - 7)</h2>
+      <div style="font-size: 0.85rem; display: flex; gap: 12px; align-items: center;">
+        <label><input type="radio" name="queueMode" value="priority" checked onchange="renderQueue()"> Rule-Based Priority</label>
+        <label><input type="radio" name="queueMode" value="fcfs" onchange="renderQueue()"> FCFS (Timestamp)</label>
+      </div>
+    </div>
+
+    <div class="grid" style="margin-bottom: 0;">
+      <div>
+        <h3 style="font-size: 0.95rem; margin-bottom: 8px; color: var(--text-dim);">Triage Priority Queue</h3>
+        <table class="queue-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Status</th>
+              <th>Priority Level</th>
+              <th>Timestamp</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="queueBody">
+            <tr><td colspan="5" style="text-align: center; color: var(--text-dim);">No active emergencies received yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div>
+        <h3 style="font-size: 0.95rem; margin-bottom: 8px; color: var(--text-dim);">Live Serial / Protocol Stream</h3>
+        <div class="log-box" id="logBox">
+          <div class="log-line">[SYSTEM] SafeSignal Software Controller Initialized.</div>
+          <div class="log-line">[SYSTEM] Ready for Virtual Simulation or Physical USB Connection.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Audio Context for realistic buzzer emulation
+    let audioCtx = null;
+    let buzzerOsc = null;
+    let buzzerGain = null;
+    let buzzerInterval = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function startBuzzerSound() {
+      initAudio();
+      stopBuzzerSound();
+
+      let isToneOn = false;
+      buzzerInterval = setInterval(() => {
+        if (isToneOn) {
+          if (buzzerOsc) {
+            buzzerOsc.stop();
+            buzzerOsc.disconnect();
+            buzzerOsc = null;
+          }
+          isToneOn = false;
+        } else {
+          buzzerOsc = audioCtx.createOscillator();
+          buzzerGain = audioCtx.createGain();
+          buzzerOsc.type = 'square';
+          buzzerOsc.frequency.setValueAtTime(2800, audioCtx.currentTime); // 2.8kHz resonant buzzer frequency
+          buzzerGain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+          buzzerOsc.connect(buzzerGain);
+          buzzerGain.connect(audioCtx.destination);
+          buzzerOsc.start();
+          isToneOn = true;
+        }
+      }, 180);
+    }
+
+    function stopBuzzerSound() {
+      if (buzzerInterval) {
+        clearInterval(buzzerInterval);
+        buzzerInterval = null;
+      }
+      if (buzzerOsc) {
+        try { buzzerOsc.stop(); buzzerOsc.disconnect(); } catch(e){}
+        buzzerOsc = null;
+      }
+    }
+
+    // System State
+    let messageCounter = 0;
+    let incidentQueue = [];
+    const ledGreen = document.getElementById('ledGreen');
+    const ledYellow = document.getElementById('ledYellow');
+    const ledRed = document.getElementById('ledRed');
+    const buzzerBadge = document.getElementById('buzzerBadge');
+    const latestBadge = document.getElementById('latestBadge');
+    const logBox = document.getElementById('logBox');
+
+    function log(msg, type = '') {
+      const line = document.createElement('div');
+      line.className = 'log-line ' + type;
+      line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+      logBox.appendChild(line);
+      logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    function triggerAlert(statusText, statusCode, origin = 'SIMULATOR') {
+      messageCounter++;
+      const item = {
+        id: messageCounter,
+        status: statusText,
+        code: statusCode,
+        timestamp: new Date().toLocaleTimeString(),
+        rawTime: Date.now(),
+        origin: origin
+      };
+
+      incidentQueue.push(item);
+      applyStatus(statusText);
+      renderQueue();
+
+      log(`[RX] Packet #${item.id} received (${item.status}) via ${origin}`, 
+          statusText === 'SAFE' ? 'safe' : (statusText === 'NEED HELP' ? 'help' : 'medical'));
+    }
+
+    function applyStatus(statusText) {
+      ledGreen.classList.remove('on');
+      ledYellow.classList.remove('on');
+      ledRed.classList.remove('on');
+      stopBuzzerSound();
+      buzzerBadge.classList.remove('sounding');
+      buzzerBadge.textContent = 'SILENT';
+
+      if (statusText === 'SAFE') {
+        ledGreen.classList.add('on');
+        latestBadge.style.background = '#166534';
+        latestBadge.style.color = '#86efac';
+        latestBadge.textContent = 'SAFE';
+      } else if (statusText === 'NEED HELP') {
+        ledYellow.classList.add('on');
+        latestBadge.style.background = '#854d0e';
+        latestBadge.style.color = '#fde047';
+        latestBadge.textContent = 'NEED HELP';
+      } else if (statusText === 'MEDICAL EMERGENCY') {
+        ledRed.classList.add('on');
+        buzzerBadge.classList.add('sounding');
+        buzzerBadge.textContent = '⚡ ALARM PULSING (GPIO 33)';
+        latestBadge.style.background = '#991b1b';
+        latestBadge.style.color = '#fca5a5';
+        latestBadge.textContent = 'MEDICAL EMERGENCY';
+        startBuzzerSound();
+      }
+    }
+
+    function renderQueue() {
+      const mode = document.querySelector('input[name="queueMode"]:checked').value;
+      const sorted = [...incidentQueue];
+
+      if (mode === 'priority') {
+        // Priority: MEDICAL EMERGENCY (3) > NEED HELP (2) > SAFE (1)
+        sorted.sort((a, b) => b.code - a.code || b.rawTime - a.rawTime);
+      } else {
+        // FCFS: order by arrival time
+        sorted.sort((a, b) => b.rawTime - a.rawTime);
+      }
+
+      const tbody = document.getElementById('queueBody');
+      tbody.innerHTML = '';
+
+      if (sorted.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-dim);">No active emergencies received yet.</td></tr>';
+        return;
+      }
+
+      sorted.slice(0, 8).forEach(item => {
+        const tr = document.createElement('tr');
+        const priorityLabel = item.code === 3 ? '🔴 CRITICAL (P1)' : (item.code === 2 ? '🟡 URGENT (P2)' : '🟢 NORMAL (P3)');
+        tr.innerHTML = `
+          <td>#${item.id}</td>
+          <td><strong>${item.status}</strong></td>
+          <td>${priorityLabel}</td>
+          <td>${item.timestamp}</td>
+          <td><button class="btn-silence" onclick="resolveItem(${item.id})">Acknowledge</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function resolveItem(id) {
+      incidentQueue = incidentQueue.filter(i => i.id !== id);
+      renderQueue();
+      log(`Incident #${id} acknowledged by operator.`);
+    }
+
+    // Reset All
+    document.getElementById('btnReset').onclick = () => {
+      ledGreen.classList.remove('on');
+      ledYellow.classList.remove('on');
+      ledRed.classList.remove('on');
+      stopBuzzerSound();
+      buzzerBadge.classList.remove('sounding');
+      buzzerBadge.textContent = 'SILENT';
+      latestBadge.style.background = '#334155';
+      latestBadge.style.color = '#cbd5e1';
+      latestBadge.textContent = 'STANDBY';
+      incidentQueue = [];
+      renderQueue();
+      log('System state reset to STANDBY.');
+    };
+
+    // Test Sound Button
+    document.getElementById('btnTestSound').onclick = () => {
+      initAudio();
+      startBuzzerSound();
+      setTimeout(stopBuzzerSound, 1200);
+    };
+
+    // WebSerial API (Connect Physical ESP32)
+    let port = null;
+    let reader = null;
+    const btnConnectSerial = document.getElementById('btnConnectSerial');
+    const serialDot = document.getElementById('serialDot');
+    const serialStatus = document.getElementById('serialStatus');
+
+    if ('serial' in navigator) {
+      btnConnectSerial.onclick = async () => {
+        try {
+          port = await navigator.serial.requestPort();
+          await port.open({ baudRate: 115200 });
+
+          serialDot.classList.add('connected');
+          serialStatus.textContent = 'Connected to ESP32 Hardware via WebSerial (115200 baud)!';
+          serialStatus.style.color = '#86efac';
+          btnConnectSerial.textContent = 'Connected ✅';
+          btnConnectSerial.disabled = true;
+
+          log('[HARDWARE] ESP32 Serial Port Opened Successfully.');
+
+          const textDecoder = new TextDecoderStream();
+          const readableStreamClosed = port.readable.pipeTo(textDecoder.writable);
+          reader = textDecoder.readable.getReader();
+
+          let buffer = '';
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            if (value) {
+              buffer += value;
+              const lines = buffer.split('\n');
+              buffer = lines.pop(); // keep last incomplete line
+
+              for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed) continue;
+                log('[ESP32-SERIAL] ' + trimmed);
+
+                // Auto parse SafeSignal packets printed by SafeSignal_Receiver.ino
+                if (trimmed.includes('Status: SAFE') || trimmed.includes('[GREEN: ON]')) {
+                  triggerAlert('SAFE', 1, 'ESP32 HARDWARE');
+                } else if (trimmed.includes('Status: NEED HELP') || trimmed.includes('[YELLOW: ON]')) {
+                  triggerAlert('NEED HELP', 2, 'ESP32 HARDWARE');
+                } else if (trimmed.includes('Status: MEDICAL EMERGENCY') || trimmed.includes('[RED: ON]')) {
+                  triggerAlert('MEDICAL EMERGENCY', 3, 'ESP32 HARDWARE');
+                }
+              }
+            }
+          }
+        } catch (err) {
+          log('[SERIAL ERROR] ' + err.message);
+          serialStatus.textContent = 'Connection failed or cancelled.';
+        }
+      };
+    } else {
+      btnConnectSerial.disabled = true;
+      serialStatus.textContent = 'WebSerial not supported in this browser (use Chrome or Edge for physical USB link).';
+    }
+  </script>
+</body>
+</html>

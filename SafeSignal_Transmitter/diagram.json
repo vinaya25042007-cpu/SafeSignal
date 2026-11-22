@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "author": "SafeSignal Team",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 0, "left": 0, "attrs": {} },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn_safe",
+      "top": -90,
+      "left": 160,
+      "attrs": { "color": "green", "label": "SAFE (GPIO 25)" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn_help",
+      "top": 0,
+      "left": 160,
+      "attrs": { "color": "yellow", "label": "NEED HELP (GPIO 26)" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn_med",
+      "top": 90,
+      "left": 160,
+      "attrs": { "color": "red", "label": "MEDICAL (GPIO 27)" }
+    }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "esp:GND.1", "btn_safe:2.1", "black", [ "h0" ] ],
+    [ "esp:25", "btn_safe:1.1", "green", [ "h0" ] ],
+    [ "esp:GND.1", "btn_help:2.1", "black", [ "h0" ] ],
+    [ "esp:26", "btn_help:1.1", "gold", [ "h0" ] ],
+    [ "esp:GND.1", "btn_med:2.1", "black", [ "h0" ] ],
+    [ "esp:27", "btn_med:1.1", "red", [ "h0" ] ]
+  ]
+}
