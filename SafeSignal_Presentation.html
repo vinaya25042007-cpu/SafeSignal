@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SafeSignal – Presentation Slide Deck</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #131c2e;
+      --card-border: #1e293b;
+      --accent: #38bdf8;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --safe: #22c55e;
+      --help: #eab308;
+      --emergency: #ef4444;
+      --purple: #a855f7;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      user-select: none;
+    }
+
+    /* Top Progress Bar */
+    #progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent), var(--purple), var(--emergency));
+      width: 10%;
+      transition: width 0.3s ease;
+      z-index: 100;
+    }
+
+    /* Slide Deck Container */
+    #deck {
+      position: relative;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    .slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      padding: 60px 80px 80px 80px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(20px) scale(0.98);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    .slide.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0) scale(1);
+    }
+
+    /* Typography */
+    h1 {
+      font-size: 3.2rem;
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #ffffff 40%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    h2 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #ffffff;
+    }
+
+    h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: var(--accent);
+    }
+
+    p {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 16px;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    /* Grids & Cards */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      width: 100%;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 24px;
+      width: 100%;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 28px;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .card:hover {
+      border-color: rgba(56, 189, 248, 0.5);
+      transform: translateY(-4px);
+    }
+
+    .card-safe { border-left: 6px solid var(--safe); }
+    .card-help { border-left: 6px solid var(--help); }
+    .card-emergency { border-left: 6px solid var(--emergency); }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+    }
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--card-border);
+      font-size: 1rem;
+    }
+    th {
+      color: var(--accent);
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+    }
+
+    /* Code Snippet */
+    pre {
+      background: #020617;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 16px;
+      font-family: monospace;
+      font-size: 0.9rem;
+      color: #38bdf8;
+      overflow-x: auto;
+    }
+
+    /* Interactive Slide Simulator */
+    .sim-panel {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      justify-content: space-around;
+      background: #020617;
+      padding: 24px;
+      border-radius: 14px;
+      border: 1px solid var(--card-border);
+      margin-top: 16px;
+    }
+    .sim-btn {
+      padding: 14px 24px;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.1s;
+    }
+    .sim-btn:active { transform: scale(0.95); }
+    .sim-btn-safe { background: #166534; color: #86efac; border: 2px solid #22c55e; }
+    .sim-btn-help { background: #854d0e; color: #fde047; border: 2px solid #eab308; }
+    .sim-btn-emergency { background: #991b1b; color: #fca5a5; border: 2px solid #ef4444; }
+
+    .sim-led {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #334155;
+      border: 3px solid #475569;
+      transition: all 0.2s;
+    }
+    .sim-led.on-green { background: #22c55e; box-shadow: 0 0 30px #22c55e; border-color: #86efac; }
+    .sim-led.on-yellow { background: #eab308; box-shadow: 0 0 30px #eab308; border-color: #fde047; }
+    .sim-led.on-red { background: #ef4444; box-shadow: 0 0 30px #ef4444; border-color: #fca5a5; }
+
+    /* Controls Bar at Bottom */
+    #controls {
+      position: fixed;
+      bottom: 20px;
+      right: 30px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(8px);
+      padding: 8px 18px;
+      border-radius: 9999px;
+      border: 1px solid var(--card-border);
+      z-index: 100;
+    }
+
+    .ctrl-btn {
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      transition: background 0.2s;
+    }
+    .ctrl-btn:hover { background: rgba(255, 255, 255, 0.1); }
+    #slide-num { font-size: 0.9rem; font-weight: 600; color: var(--accent); }
+
+    /* Presenter Notes */
+    #notes-drawer {
+      position: fixed;
+      bottom: -180px;
+      left: 0;
+      width: 100%;
+      height: 180px;
+      background: #020617;
+      border-top: 2px solid var(--accent);
+      padding: 20px 40px;
+      transition: bottom 0.3s ease;
+      z-index: 90;
+      box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
+    }
+    #notes-drawer.open { bottom: 0; }
+    #notes-title { font-size: 0.85rem; font-weight: 700; color: var(--accent); text-transform: uppercase; margin-bottom: 6px; }
+    #notes-text { font-size: 1.05rem; color: #cbd5e1; line-height: 1.5; }
+  </style>
+</head>
+<body>
+
+  <div id="progress-bar"></div>
+
+  <div id="deck">
+
+    <!-- SLIDE 1: Title & Hero -->
+    <div class="slide active" data-notes="Welcome everyone. Today I am presenting SafeSignal, a prototype off-grid emergency communication system built on dual ESP32 microcontrollers designed to bridge communication gaps during disasters when cellular networks fail.">
+      <span class="badge">Disaster Resilient Technology</span>
+      <h1>SafeSignal</h1>
+      <h3 style="font-size: 1.6rem; color: #ffffff; margin-bottom: 12px; font-weight: 400;">
+        Wireless Emergency Communication System
+      </h3>
+      <p style="font-size: 1.25rem; max-width: 800px; margin-bottom: 30px;">
+        An off-grid, low-latency, peer-to-peer radio messaging network enabling physical-button disaster triage without cell towers, Wi-Fi routers, or internet.
+      </p>
+      <div style="display: flex; gap: 24px; color: var(--accent); font-weight: 600; font-size: 0.95rem;">
+        <span>📻 Protocol: ESP-NOW (2.4 GHz)</span>
+        <span>⚡ Hardware: ESP32-WROOM-32</span>
+        <span>⏱️ Latency: &lt; 2 ms</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 2: Problem Statement -->
+    <div class="slide" data-notes="When natural disasters strike—like floods, hurricanes, or earthquakes—the first infrastructure to collapse is the power grid and cellular towers. People are trapped, phone lines are down, and emergency responders have no visibility into who needs help first.">
+      <span class="badge">The Motivation</span>
+      <h2>The Problem: Communication Blackouts</h2>
+      <div class="grid-3">
+        <div class="card">
+          <div style="font-size: 2.2rem; margin-bottom: 10px;">🌪️</div>
+          <h3>Infrastructure Collapse</h3>
+          <p>Earthquakes, floods, and storms destroy base transceiver stations (BTS), cut fiber lines, and shut down electrical power grids.</p>
+        </div>
+        <div class="card">
+          <div style="font-size: 2.2rem; margin-bottom: 10px;">📵</div>
+          <h3>Smartphone Dependency</h3>
+          <p>Traditional emergency systems rely entirely on smartphones, cellular SIMs, or internet connectivity—rendering them useless during disasters.</p>
+        </div>
+        <div class="card">
+          <div style="font-size: 2.2rem; margin-bottom: 10px;">⏳</div>
+          <h3>Lost "Golden Hour"</h3>
+          <p>Search & rescue teams waste critical hours wandering blind because there is no localized triage signaling who is safe versus who needs immediate medical rescue.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3: Proposed Solution -->
+    <div class="slide" data-notes="SafeSignal completely removes the dependency on cellular infrastructure. It gives the user a tactile, three-button handheld transmitter and a monitoring receiver station that communicates through pure radio waves.">
+      <span class="badge">The Solution</span>
+      <h2>SafeSignal: Off-Grid Wireless Triage</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>💡 What is SafeSignal?</h3>
+          <p style="margin-bottom: 16px;">
+            A portable, two-node wireless communication system operating over <strong>ESP-NOW</strong> radio protocol. It converts physical button presses into encrypted wireless status packets in real time.
+          </p>
+          <ul style="color: var(--text-muted); margin-left: 20px; line-height: 1.8;">
+            <li>Zero dependencies: <strong>No Router, No Internet, No SIM</strong></li>
+            <li>Tactile 3-button human interface (accessible to children & injured)</li>
+            <li>Immediate visual & acoustic status triage</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>🎯 Core Engineering Objectives</h3>
+          <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
+            <div style="background: rgba(34, 197, 94, 0.1); border-left: 4px solid var(--safe); padding: 10px 14px; border-radius: 6px;">
+              <strong style="color: var(--safe);">Off-Grid Autonomy:</strong> 100% peer-to-peer radio link
+            </div>
+            <div style="background: rgba(234, 179, 8, 0.1); border-left: 4px solid var(--help); padding: 10px 14px; border-radius: 6px;">
+              <strong style="color: var(--help);">Sub-Second Triage:</strong> Immediate packet arrival (&lt;2ms)
+            </div>
+            <div style="background: rgba(239, 68, 68, 0.1); border-left: 4px solid var(--emergency); padding: 10px 14px; border-radius: 6px;">
+              <strong style="color: var(--emergency);">Fail-Safe Delivery:</strong> 3-stage hardware retry & link acknowledgment
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4: Architecture & Protocol -->
+    <div class="slide" data-notes="We chose ESP-NOW because it avoids the multi-second handshake overhead of traditional Wi-Fi. It uses raw MAC-level frames to transmit packets instantaneously, and supports link-layer acknowledgment.">
+      <span class="badge">Networking Architecture</span>
+      <h2>Wireless Communication: ESP-NOW</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Why ESP-NOW instead of Wi-Fi / Bluetooth?</h3>
+          <table style="margin-top: 10px;">
+            <tr><th>Feature</th><th>Traditional Wi-Fi</th><th>ESP-NOW</th></tr>
+            <tr><td>Router Required?</td><td>Yes (AP/DHCP)</td><td><strong style="color: var(--safe);">No (Peer-to-Peer)</strong></td></tr>
+            <tr><td>Connection Time</td><td>3 - 8 Seconds</td><td><strong style="color: var(--safe);">&lt; 2 Milliseconds</strong></td></tr>
+            <tr><td>Power Consumption</td><td>High (~200mA)</td><td><strong style="color: var(--safe);">Low / Burst</strong></td></tr>
+            <tr><td>Payload Framing</td><td>TCP/IP Stack</td><td><strong style="color: var(--safe);">Direct Action Frames</strong></td></tr>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Structured Message Payload</h3>
+          <p style="margin-bottom: 12px;">Transmitter sends a strongly typed binary C-struct containing message sequence numbers, emergency enum codes, and timestamps:</p>
+          <pre>typedef struct struct_message {
+  uint32_t messageId;       // Sequence ID
+  EmergencyStatus status;   // 1=SAFE, 2=HELP, 3=MED
+  char statusText[24];      // Status Label
+  uint32_t timestamp;       // Millis timestamp
+} struct_message;</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5: Hardware Specifications -->
+    <div class="slide" data-notes="Here is the exact hardware bill of materials. The transmitter has 3 pushbuttons with internal pull-ups, while the receiver drives 3 current-limited LEDs and an active buzzer module.">
+      <span class="badge">Hardware Specifications</span>
+      <h2>System Hardware Bill of Materials</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Transmitter (Node 1 - Remote)</h3>
+          <table>
+            <tr><th>Component</th><th>GPIO Pin</th><th>Configuration</th></tr>
+            <tr><td>SAFE Button</td><td>GPIO 25</td><td>INPUT_PULLUP &rarr; GND</td></tr>
+            <tr><td>NEED HELP Button</td><td>GPIO 26</td><td>INPUT_PULLUP &rarr; GND</td></tr>
+            <tr><td>MEDICAL Button</td><td>GPIO 27</td><td>INPUT_PULLUP &rarr; GND</td></tr>
+            <tr><td>Onboard Status LED</td><td>GPIO 2</td><td>Blinks on transmission / ACK</td></tr>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Receiver (Node 2 - Station)</h3>
+          <table>
+            <tr><th>Component</th><th>GPIO Pin</th><th>Configuration</th></tr>
+            <tr><td>Green LED (SAFE)</td><td>GPIO 25</td><td>220&Omega; Series &rarr; Anode</td></tr>
+            <tr><td>Yellow LED (HELP)</td><td>GPIO 26</td><td>220&Omega; Series &rarr; Anode</td></tr>
+            <tr><td>Red LED (MEDICAL)</td><td>GPIO 27</td><td>220&Omega; Series &rarr; Anode</td></tr>
+            <tr><td>Active Buzzer</td><td>GPIO 33</td><td>3.3V Resonant Signal</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 6: Triage Status Matrix -->
+    <div class="slide" data-notes="The output behavior is mutually exclusive: only the latest status received remains active. Medical Emergency is the only state that activates the acoustic siren.">
+      <span class="badge">Operational Logic</span>
+      <h2>Status Output Matrix & Triage Rules</h2>
+      <div class="grid-3" style="margin-bottom: 24px;">
+        <div class="card card-safe">
+          <h3 style="color: var(--safe);">🟢 SAFE</h3>
+          <p><strong>Code:</strong> 1</p>
+          <p><strong>Green LED:</strong> <span style="color: var(--safe); font-weight: bold;">ON</span></p>
+          <p><strong>Yellow & Red:</strong> OFF</p>
+          <p><strong>Buzzer:</strong> SILENT</p>
+          <p style="margin-top: 10px; font-size: 0.95rem;">Indicates household is secure. Responders bypass to next zone.</p>
+        </div>
+        <div class="card card-help">
+          <h3 style="color: var(--help);">🟡 NEED HELP</h3>
+          <p><strong>Code:</strong> 2</p>
+          <p><strong>Yellow LED:</strong> <span style="color: var(--help); font-weight: bold;">ON</span></p>
+          <p><strong>Green & Red:</strong> OFF</p>
+          <p><strong>Buzzer:</strong> SILENT</p>
+          <p style="margin-top: 10px; font-size: 0.95rem;">Non-critical aid required (clean water, rations, minor repairs).</p>
+        </div>
+        <div class="card card-emergency">
+          <h3 style="color: var(--emergency);">🔴 MEDICAL ALERT</h3>
+          <p><strong>Code:</strong> 3</p>
+          <p><strong>Red LED:</strong> <span style="color: var(--emergency); font-weight: bold;">ON</span></p>
+          <p><strong>Green & Yellow:</strong> OFF</p>
+          <p><strong>Buzzer:</strong> <span style="color: var(--emergency); font-weight: bold;">PULSING ALARM</span></p>
+          <p style="margin-top: 10px; font-size: 0.95rem;">Critical life threat. Search & rescue dispatched immediately!</p>
+        </div>
+      </div>
+      <p style="font-size: 1rem; text-align: center; color: var(--accent);">
+        *Latching Mechanism: Sending a new status immediately switches outputs and mutes the siren.*
+      </p>
+    </div>
+
+    <!-- SLIDE 7: Live Interactive Simulator -->
+    <div class="slide" data-notes="Let's demonstrate the operational behavior right here on this slide! Clicking these buttons simulates the exact hardware logic and triggers our synthesized Web Audio buzzer siren.">
+      <span class="badge">Live Interactive Demonstration</span>
+      <h2>Interactive System Simulation</h2>
+      <p>Click the buttons below to test the emergency logic and hear the active buzzer siren directly in this presentation:</p>
+
+      <div class="sim-panel">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <button class="sim-btn sim-btn-safe" onclick="simTrigger('SAFE')">Press Button 1 (SAFE)</button>
+          <button class="sim-btn sim-btn-help" onclick="simTrigger('HELP')">Press Button 2 (NEED HELP)</button>
+          <button class="sim-btn sim-btn-emergency" onclick="simTrigger('MED')">Press Button 3 (MEDICAL)</button>
+        </div>
+
+        <div style="display: flex; gap: 30px; align-items: center;">
+          <div style="text-align: center;">
+            <div id="sim-green" class="sim-led on-green"></div>
+            <span style="font-size: 0.8rem; color: var(--safe); font-weight: bold; margin-top: 6px; display: block;">GREEN (D25)</span>
+          </div>
+          <div style="text-align: center;">
+            <div id="sim-yellow" class="sim-led"></div>
+            <span style="font-size: 0.8rem; color: var(--help); font-weight: bold; margin-top: 6px; display: block;">YELLOW (D26)</span>
+          </div>
+          <div style="text-align: center;">
+            <div id="sim-red" class="sim-led"></div>
+            <span style="font-size: 0.8rem; color: var(--emergency); font-weight: bold; margin-top: 6px; display: block;">RED (D27)</span>
+          </div>
+        </div>
+
+        <div style="text-align: center; padding: 14px 20px; background: #0f172a; border-radius: 10px; border: 1px solid #334155;">
+          <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">BUZZER SIREN (D33)</span>
+          <span id="sim-buzzer-text" style="font-size: 1.1rem; font-weight: 800; color: #64748b;">SILENT</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 8: Software & Firmware Engineering -->
+    <div class="slide" data-notes="We engineered robustness into the firmware. We implemented 50 millisecond software debouncing, automated retry loops with 150ms backoff, and cross-compatibility with Arduino ESP32 core versions 2 and 3.">
+      <span class="badge">Firmware Engineering</span>
+      <h2>Firmware Reliability & Fail-Safes</h2>
+      <div class="grid-3">
+        <div class="card">
+          <h3>🛡️ Software Debounce</h3>
+          <p>Mechanical pushbuttons chatter upon contact. We implemented a 50ms stable-state non-blocking time window to eliminate false multiple triggers.</p>
+        </div>
+        <div class="card">
+          <h3>🔁 3-Stage Retry Logic</h3>
+          <p>If link-layer ACK fails (e.g. RF interference), the transmitter executes up to 3 automatic retries with 150ms backoff before flagging a delivery alert.</p>
+        </div>
+        <div class="card">
+          <h3>🔄 Dual-Core Compatibility</h3>
+          <p>Utilizes preprocessor conditional compilation to seamlessly support both Arduino ESP32 Core 2.x and Core 3.x/4.x callback type signatures.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 9: Future Roadmap (Phases 4-7) -->
+    <div class="slide" data-notes="SafeSignal is designed to evolve. Our roadmap includes extending physical range up to 10 kilometers with SX1278 LoRa modules, developing a FastAPI and SQLite audit backend, a real-time React dashboard, and benchmarking rule-based priority scheduling against FCFS.">
+      <span class="badge">Future Scope</span>
+      <h2>Project Roadmap (Phases 4 – 7)</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>📡 Phase 4: LoRa Gateway (5–10 km Range)</h3>
+          <p>Replacing/bridging ESP-NOW with SX1278 / SX1262 LoRa modules over SPI to scale communication across vast mountain, rural, or maritime disaster terrain.</p>
+        </div>
+        <div class="card">
+          <h3>🗄️ Phase 5: FastAPI + SQLite Gateway</h3>
+          <p>Central receiver node streams JSON payloads over USB/Serial to a lightweight FastAPI server that logs emergency timestamps, RSSI, and responder acknowledgment.</p>
+        </div>
+        <div class="card">
+          <h3>💻 Phase 6: React Dispatcher Dashboard</h3>
+          <p>A web-based incident dashboard visualizing incoming emergency markers, alert feeds, audio alarms, and one-click incident clearance.</p>
+        </div>
+        <div class="card">
+          <h3>⚖️ Phase 7: Priority Algorithm vs. FCFS</h3>
+          <p>Benchmarking First-Come-First-Served (FCFS) against Rule-Based Priority Ranking (Medical &gt; Help &gt; Safe) to prove reduced critical dispatch latency during alert storms.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 10: Conclusion & Q&A -->
+    <div class="slide" data-notes="In conclusion, SafeSignal demonstrates how low-cost commodity microcontrollers can create life-saving, off-grid communication networks. Thank you, and I am now ready for questions.">
+      <span class="badge">Conclusion</span>
+      <h1>Thank You!</h1>
+      <h3 style="color: #ffffff; font-weight: 400; margin-bottom: 20px;">
+        SafeSignal: When traditional networks go dark, simple physical signals save lives.
+      </h3>
+      <div class="card" style="max-width: 600px; margin-bottom: 30px;">
+        <p style="color: #ffffff; font-weight: 700; margin-bottom: 6px;">🔗 Open Source Repository:</p>
+        <p style="color: var(--accent); font-family: monospace;">https://github.com/vinaya25042007-cpu/SafeSignal</p>
+      </div>
+      <p style="color: var(--text-muted); font-size: 1.2rem;">
+        Open for Questions & Technical Discussion 🎙️
+      </p>
+    </div>
+
+  </div>
+
+  <!-- Bottom Floating Controls -->
+  <div id="controls">
+    <button class="ctrl-btn" onclick="prevSlide()" title="Previous (Left Arrow)">◀</button>
+    <span id="slide-num">1 / 10</span>
+    <button class="ctrl-btn" onclick="nextSlide()" title="Next (Right Arrow / Space)">▶</button>
+    <button class="ctrl-btn" onclick="toggleNotes()" title="Presenter Notes (S)">📝</button>
+    <button class="ctrl-btn" onclick="toggleFullScreen()" title="Full Screen (F)">⛶</button>
+  </div>
+
+  <!-- Presenter Notes Drawer -->
+  <div id="notes-drawer">
+    <div id="notes-title">🎙️ Presenter Script & Talking Points (Press 'S' to close):</div>
+    <div id="notes-text">Welcome to SafeSignal presentation!</div>
+  </div>
+
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    const progressBar = document.getElementById('progress-bar');
+    const slideNum = document.getElementById('slide-num');
+    const notesDrawer = document.getElementById('notes-drawer');
+    const notesText = document.getElementById('notes-text');
+
+    function updateSlide() {
+      slides.forEach((s, idx) => {
+        s.classList.toggle('active', idx === currentSlide);
+      });
+      progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+      slideNum.textContent = `${currentSlide + 1} / ${totalSlides}`;
+      notesText.textContent = slides[currentSlide].getAttribute('data-notes') || 'No notes for this slide.';
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides - 1) {
+        currentSlide++;
+        updateSlide();
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 0) {
+        currentSlide--;
+        updateSlide();
+      }
+    }
+
+    function toggleNotes() {
+      notesDrawer.classList.toggle('open');
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    // Keyboard navigation
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        prevSlide();
+      } else if (e.key === 's' || e.key === 'S') {
+        toggleNotes();
+      } else if (e.key === 'f' || e.key === 'F') {
+        toggleFullScreen();
+      } else if (e.key === 'Home') {
+        currentSlide = 0;
+        updateSlide();
+      } else if (e.key === 'End') {
+        currentSlide = totalSlides - 1;
+        updateSlide();
+      }
+    });
+
+    // Touch swipe support
+    let touchStartX = 0;
+    window.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX);
+    window.addEventListener('touchend', e => {
+      let touchEndX = e.changedTouches[0].screenX;
+      if (touchEndX < touchStartX - 50) nextSlide();
+      if (touchEndX > touchStartX + 50) prevSlide();
+    });
+
+    // Initialize first slide notes
+    updateSlide();
+
+    // -------------------------------------------------------------
+    // Interactive Slide Audio & LED Logic
+    // -------------------------------------------------------------
+    let audioCtx = null;
+    let buzzOsc = null;
+    let buzzInterval = null;
+
+    function initAudio() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    function startSiren() {
+      initAudio();
+      stopSiren();
+      let state = false;
+      buzzInterval = setInterval(() => {
+        if (state) {
+          if (buzzOsc) { buzzOsc.stop(); buzzOsc.disconnect(); buzzOsc = null; }
+          state = false;
+        } else {
+          buzzOsc = audioCtx.createOscillator();
+          let gain = audioCtx.createGain();
+          buzzOsc.type = 'square';
+          buzzOsc.frequency.setValueAtTime(2800, audioCtx.currentTime);
+          gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+          buzzOsc.connect(gain);
+          gain.connect(audioCtx.destination);
+          buzzOsc.start();
+          state = true;
+        }
+      }, 180);
+    }
+
+    function stopSiren() {
+      if (buzzInterval) { clearInterval(buzzInterval); buzzInterval = null; }
+      if (buzzOsc) {
+        try { buzzOsc.stop(); buzzOsc.disconnect(); } catch(e){}
+        buzzOsc = null;
+      }
+    }
+
+    function simTrigger(type) {
+      const g = document.getElementById('sim-green');
+      const y = document.getElementById('sim-yellow');
+      const r = document.getElementById('sim-red');
+      const b = document.getElementById('sim-buzzer-text');
+
+      g.className = 'sim-led';
+      y.className = 'sim-led';
+      r.className = 'sim-led';
+      stopSiren();
+      b.textContent = 'SILENT';
+      b.style.color = '#64748b';
+
+      if (type === 'SAFE') {
+        g.classList.add('on-green');
+      } else if (type === 'HELP') {
+        y.classList.add('on-yellow');
+      } else if (type === 'MED') {
+        r.classList.add('on-red');
+        b.textContent = '⚡ ALARM PULSING (2.8 kHz)';
+        b.style.color = '#ef4444';
+        startSiren();
+      }
+    }
+  </script>
+</body>
+</html>
